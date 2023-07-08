@@ -1,4 +1,4 @@
-// Package server implements an rpc server for the bloomfilter, registering a bloomfilter and accepting a tcp listener.
+Package server implements an rpc server for the bloomfilter, registering a bloomfilter and accepting a tcp listener.
 package server
 
 import (
@@ -7,7 +7,7 @@ import (
 	rpc_bf "github.com/krakendio/bloomfilter/v2/rpc"
 )
 
-// New creates an rpc bloomfilter and launches a serving goroutine
+New creates an rpc bloomfilter and launches a serving goroutine
 func New(ctx context.Context, cfg rpc_bf.Config) *rpc_bf.Bloomfilter {
 	bf := rpc_bf.New(ctx, cfg)
 
@@ -16,46 +16,46 @@ func New(ctx context.Context, cfg rpc_bf.Config) *rpc_bf.Bloomfilter {
 	return bf
 }
 
-// Serve creates an RPC server, registers a bloomfilter, accepts a TLS listener, and closes when catching context done
-// func Serve(ctx context.Context, port int, bf *rpc_bf.Bloomfilter, certFile, keyFile string) error {
-// 	s := rpc.NewServer()
+Serve creates an RPC server, registers a bloomfilter, accepts a TLS listener, and closes when catching context done
+func Serve(ctx context.Context, port int, bf *rpc_bf.Bloomfilter, certFile, keyFile string) error {
+	s := rpc.NewServer()
 
-// 	if err := s.Register(&bf.BloomfilterRPC); err != nil {
-// 		return err
-// 	}
+	if err := s.Register(&bf.BloomfilterRPC); err != nil {
+		return err
+	}
 
-// 	l, err := net.Listen("tcp", fmt.Sprintf(":%d", port))
-// 	if err != nil {
-// 		return err
-// 	}
+	l, err := net.Listen("tcp", fmt.Sprintf(":%d", port))
+	if err != nil {
+		return err
+	}
 
-// 	cert, err := ioutil.ReadFile(certFile)
-// 	if err != nil {
-// 		return err
-// 	}
+	cert, err := ioutil.ReadFile(certFile)
+	if err != nil {
+		return err
+	}
 
-// 	key, err := ioutil.ReadFile(keyFile)
-// 	if err != nil {
-// 		return err
-// 	}
+	key, err := ioutil.ReadFile(keyFile)
+	if err != nil {
+		return err
+	}
 
-// 	certificates, err := tls.X509KeyPair(cert, key)
-// 	if err != nil {
-// 		return err
-// 	}
+	certificates, err := tls.X509KeyPair(cert, key)
+	if err != nil {
+		return err
+	}
 
-// 	tlsConfig := &tls.Config{
-// 		Certificates: []tls.Certificate{certificates},
-// 	}
+	tlsConfig := &tls.Config{
+		Certificates: []tls.Certificate{certificates},
+	}
 
-// 	tlsListener := tls.NewListener(l, tlsConfig)
+	tlsListener := tls.NewListener(l, tlsConfig)
 
-// 	go func() {
-// 		<-ctx.Done()
-// 		tlsListener.Close()
-// 		bf.Close()
-// 	}()
+	go func() {
+		<-ctx.Done()
+		tlsListener.Close()
+		bf.Close()
+	}()
 
-// 	s.Accept(tlsListener)
-// 	return nil
-// }
+	s.Accept(tlsListener)
+	return nil
+}
