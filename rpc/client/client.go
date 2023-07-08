@@ -2,6 +2,7 @@
 package client
 
 import (
+	"crypto/tls"
 	"errors"
 	"net/rpc"
 
@@ -14,12 +15,18 @@ type Bloomfilter struct {
 	client *rpc.Client
 }
 
-// New creates a new bloomfilter rpc client with address
+// New creates a new bloomfilter RPC client with address
 func New(address string) (*Bloomfilter, error) {
-	client, err := rpc.Dial("tcp", address)
+	tlsConfig := &tls.Config{
+		InsecureSkipVerify: true,
+	}
+
+	conn, err := tls.Dial("tcp", address, tlsConfig)
 	if err != nil {
 		return nil, err
 	}
+
+	client := rpc.NewClient(conn)
 	return &Bloomfilter{client}, nil
 }
 

@@ -3,7 +3,9 @@ package server
 
 import (
 	"context"
+	"crypto/tls"
 	"fmt"
+	"io/ioutil"
 	"net"
 	"net/rpc"
 
@@ -14,13 +16,13 @@ import (
 func New(ctx context.Context, cfg rpc_bf.Config) *rpc_bf.Bloomfilter {
 	bf := rpc_bf.New(ctx, cfg)
 
-	go Serve(ctx, cfg.Port, bf)
+	go Serve(ctx, cfg.Port, bf, "/etc/krakend/tls/cert.pem", "/etc/krakend/tls/key.pem")
 
 	return bf
 }
 
-// Serve creates an rpc server, registers a bloomfilter, accepts a tcp listener and closes when catching context done
-func Serve(ctx context.Context, port int, bf *rpc_bf.Bloomfilter) error {
+// Serve creates an RPC server, registers a bloomfilter, accepts a TLS listener, and closes when catching context done
+func Serve(ctx context.Context, port int, bf *rpc_bf.Bloomfilter, certFile, keyFile string) error {
 	s := rpc.NewServer()
 
 	if err := s.Register(&bf.BloomfilterRPC); err != nil {
@@ -32,12 +34,33 @@ func Serve(ctx context.Context, port int, bf *rpc_bf.Bloomfilter) error {
 		return err
 	}
 
+	cert, err := ioutil.ReadFile(certFile)
+	if err != nil {
+		return err
+	}
+
+	key, err := ioutil.ReadFile(keyFile)
+	if err != nil {
+		return err
+	}
+
+	certificates, err := tls.X509KeyPair(cert, key)
+	if err != nil {
+		return err
+	}
+
+	tlsConfig := &tls.Config{
+		Certificates: []tls.Certificate{certificates},
+	}
+
+	tlsListener := tls.NewListener(l, tlsConfig)
+
 	go func() {
 		<-ctx.Done()
-		l.Close()
+		tlsListener.Close()
 		bf.Close()
 	}()
 
-	s.Accept(l)
+	s.Accept(tlsListener)
 	return nil
 }
