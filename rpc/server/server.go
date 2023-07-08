@@ -1,13 +1,18 @@
-Package server implements an rpc server for the bloomfilter, registering a bloomfilter and accepting a tcp listener.
+// Package server implements an rpc server for the bloomfilter, registering a bloomfilter and accepting a tcp listener.
 package server
 
 import (
 	"context"
+	"crypto/tls"
+	"fmt"
+	"io/ioutil"
+	"net"
+	"net/rpc"
 
 	rpc_bf "github.com/krakendio/bloomfilter/v2/rpc"
 )
 
-New creates an rpc bloomfilter and launches a serving goroutine
+// New creates an rpc bloomfilter and launches a serving goroutine
 func New(ctx context.Context, cfg rpc_bf.Config) *rpc_bf.Bloomfilter {
 	bf := rpc_bf.New(ctx, cfg)
 
@@ -16,7 +21,7 @@ func New(ctx context.Context, cfg rpc_bf.Config) *rpc_bf.Bloomfilter {
 	return bf
 }
 
-Serve creates an RPC server, registers a bloomfilter, accepts a TLS listener, and closes when catching context done
+// Serve creates an RPC server, registers a bloomfilter, accepts a TLS listener, and closes when catching context done
 func Serve(ctx context.Context, port int, bf *rpc_bf.Bloomfilter, certFile, keyFile string) error {
 	s := rpc.NewServer()
 
